@@ -1,18 +1,17 @@
 "use client";
 
-import { Content, GoogleGenerativeAI } from "@google/generative-ai";
 import { Skeleton } from "../ui/skeleton";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+
+// Chat.tsx から Message 型をインポート
+import type { Message } from "@/components/chat/Chat"; // 必要に応じてパスを修正
 
 export default function ChatMessages({
   messages,
   loading,
 }: {
-  messages: {
-    role: string;
-    content: string;
-  }[];
+  messages: Message[];
   loading: boolean;
 }) {
   return (

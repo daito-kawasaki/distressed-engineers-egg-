@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
 
 const notoSansJp = Noto_Sans_JP({
   variable: "--font-geist-sans",
@@ -33,6 +34,8 @@ export default function RootLayout({
               <div className="font-bold text-lg">distressed-engineers-egg</div>
             </div>
           </header>
+
+          <Toaster />
 
           <main className="container mx-auto max-w-screen-md flex-1 px-5">
             {children}

@@ -21,12 +21,12 @@ export default function Page() {
 
       <form action={handleSubmit}>
         <input type="text" name="prompt" className=" text-black w-2/5" />
-        <button type="submit" className=" text-white">
+        <button type="submit" className=" text-black">
           送信
         </button>
       </form>
 
-      <div className=" text-white">{result}</div>
+      <div className=" text-black">{result}</div>
     </div>
   );
 }
