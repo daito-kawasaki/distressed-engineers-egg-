@@ -7,7 +7,7 @@ import ChatMessages from "@/components/chat/ChatMessages";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import InputPrompt from "@/components/chat/InputPrompt";
-import { chatLogic } from "@/lib/chatLogic";
+import { useChatLogic } from "@/lib/useChatLogic";
 import { createGeminiClient } from "@/lib/geminiApi";
 import { Message } from "@/lib/types/chat";
 
@@ -16,13 +16,8 @@ export default function Chat() {
   const [reseted, setReseted] = useState(false);
   const [loading, setLoading] = useState(false);
   const genAIRef = useRef<GoogleGenerativeAI | null>(null);
-  const {
-    messages,
-    setMessages,
-    handleSendMessage,
-    questions,
-    questionNumber,
-  } = chatLogic();
+  const { messages, setMessages, handleSendMessage, questions } =
+    useChatLogic();
 
   useEffect(() => {
     if (!genAIRef.current) {
@@ -45,7 +40,7 @@ export default function Chat() {
       content: questions[0],
     };
     setMessages((prevMessages) => [...prevMessages, firstQuestion]);
-  }, []);
+  }, [questions, setMessages]);
 
   const handleSubmit = async (formData: { prompt: string }) => {
     setLoading(true);
@@ -54,11 +49,19 @@ export default function Chat() {
         throw new Error("APIクライアントの初期化に失敗しました。");
       }
       await handleSendMessage(formData, genAIRef.current);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      let errorMessage = "内容をご確認ください。";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      } else if (error && typeof error === "object" && "message" in error) {
+        errorMessage = String(error.message);
+      }
       toast({
         variant: "destructive",
         title: "メッセージの取得に失敗しました。",
-        description: error.message || "内容を御覧ください。",
+        description: errorMessage,
       });
     } finally {
       setLoading(false);

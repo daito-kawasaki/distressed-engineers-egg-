@@ -9,7 +9,6 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -48,7 +47,7 @@ export default function InputPrompt({
       form.reset();
       setReseted(false);
     }
-  }, [reseted]);
+  }, [form, setReseted, reseted]);
 
   const handleSubmit = (data: FromValues) => {
     onSubmit(data);
