@@ -9,28 +9,8 @@ import { useRouter } from "next/navigation";
 import InputPrompt from "@/components/chat/InputPrompt";
 import { chatLogic } from "@/lib/chatLogic";
 import { createGeminiClient } from "@/lib/geminiApi";
+import { Message } from "@/lib/types/chat";
 
-// Gemini API の Content 型に合わせるための型定義
-type GeminiPart = {
-  text: string;
-};
-
-type GeminiContent = {
-  role: "user" | "model";
-  parts: GeminiPart[];
-};
-
-export type Message = {
-  role: "user" | "assistant" | "question";
-  content: string;
-};
-
-const questions = [
-  "あなたは、エンジニアの中で将来何の職種につきたいですか？また今まで学習してきた内容を踏まえて何をしている瞬間に楽しいなと感じましたか？ 入力例）将来私はwebエンジニアとして活動していきたいです。中でもフロントエンドをしていて楽しいと思ったのでフロントエンドをしていきたいです。？",
-  "最近面白かったことはありますか？",
-  "好きな食べ物は何ですか？",
-  "明日、楽しみなことはありますか？",
-];
 export default function Chat() {
   const router = useRouter();
   const [reseted, setReseted] = useState(false);
