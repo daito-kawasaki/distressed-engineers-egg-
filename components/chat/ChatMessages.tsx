@@ -3,9 +3,7 @@
 import { Skeleton } from "../ui/skeleton";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-
-// Chat.tsx から Message 型をインポート
-import type { Message } from "@/components/chat/Chat"; // 必要に応じてパスを修正
+import type { Message } from "@/components/chat/Chat";
 
 export default function ChatMessages({
   messages,
@@ -19,10 +17,13 @@ export default function ChatMessages({
       {messages.map((message, index) => (
         <div
           key={index}
-          className={cn(message.role === "user" && "flex justify-end")}
+          className={cn(
+            message.role === "user" && "flex justify-end",
+            message.role === "question" && "text-gray-500"
+          )}
         >
           <div className="flex items-center">
-            {message.role !== "user" && (
+            {message.role === "assistant" && (
               <div className="relative h-10 w-10 mr-2">
                 <Image src="/robot.png" fill alt="robot" />
               </div>
@@ -33,10 +34,14 @@ export default function ChatMessages({
                 "max-w-[500px] p-3 shadow",
                 message.role === "user"
                   ? "bg-primary text-white rounded-t-lg rounded-bl-lg"
-                  : "bg-muted rounded-t-lg rounded-br-lg"
+                  : message.role === "assistant"
+                  ? "bg-muted rounded-t-lg rounded-br-lg"
+                  : "bg-gray-100 rounded-t-lg rounded-br-lg"
               )}
             >
-              <div className="text-sm">{message.content}</div>
+              <div className="text-sm break-words break-keep">
+                {message.content}
+              </div>
             </div>
           </div>
         </div>
