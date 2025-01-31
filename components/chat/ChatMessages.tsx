@@ -3,7 +3,7 @@
 import { Skeleton } from "../ui/skeleton";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import type { Message } from "@/components/chat/Chat";
+import type { Message } from "@/lib/types/chat";
 
 export default function ChatMessages({
   messages,
