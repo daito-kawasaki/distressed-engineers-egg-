@@ -68,7 +68,7 @@ export const useChatLogic = () => {
           setMessages((prevMessages) => [...prevMessages, newQuestion]);
           setQuestionNumber((prevNumber) => prevNumber + 1);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error fetching data:", error);
         throw error;
       }
