@@ -18,11 +18,19 @@ export default function ChatMessages({
         <div
           key={index}
           className={cn(
-            message.role === "user" && "flex justify-end",
+            message.role === "user" &&
+              "flex justify-end max-w-full sm:max-w-[500px]",
             message.role === "question" && "text-gray-500"
           )}
         >
-          <div className="flex items-center">
+          <div
+            className={cn(
+              message.role === "user" &&
+                "flex items-center max-w-[70%] sm:max-w-[500px]",
+              message.role === "question" &&
+                "flex items-center max-w-full sm:max-w-[500px]"
+            )}
+          >
             {message.role === "assistant" && (
               <div className="relative h-10 w-10 mr-2">
                 <Image src="/robot.png" fill alt="robot" />
@@ -31,7 +39,7 @@ export default function ChatMessages({
 
             <div
               className={cn(
-                "max-w-[500px] p-3 shadow",
+                "max-w-full p-3 shadow sm:max-w-[500px]",
                 message.role === "user"
                   ? "bg-primary text-white rounded-t-lg rounded-bl-lg"
                   : message.role === "assistant"
