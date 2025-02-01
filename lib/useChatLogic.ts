@@ -118,7 +118,7 @@ export const useChatLogic = () => {
         }
       }
     },
-    [messages, questionNumber, setMessages, setQuestionNumber]
+    [messages, questionNumber, setMessages, setQuestionNumber, messageNumber]
   );
 
   return {
