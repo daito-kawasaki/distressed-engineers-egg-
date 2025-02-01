@@ -18,6 +18,7 @@ export default function Chat() {
   const genAIRef = useRef<GoogleGenerativeAI | null>(null);
   const { messages, setMessages, handleSendMessage, questions } =
     useChatLogic();
+  const [hasInitialQuestion, setHasInitialQuestion] = useState(false);
 
   useEffect(() => {
     if (!genAIRef.current) {
