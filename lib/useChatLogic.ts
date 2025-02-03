@@ -2,7 +2,14 @@ import { useState, useCallback } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Message } from "./types/chat";
 import useExponentialBackoff from "./useExponentialBackoff";
-import { GeminiContent } from "./types/chat";
+
+export type GeminiPart = {
+  text: string;
+};
+export type GeminiContent = {
+  role: "user" | "model";
+  parts: GeminiPart[];
+};
 
 const questions = [
   "1. あなたが今まで行ってきたこと（言語やフレームワーク、開発の内容など）はなんですか？それを踏まえてロボットにそれらがどのような職種があるか訪ねて見てください",
@@ -70,6 +77,7 @@ export const useChatLogic = () => {
             genAI,
             geminiHistory
           );
+
           if (
             result &&
             result.success &&
@@ -85,6 +93,7 @@ export const useChatLogic = () => {
               ...prevMessages,
               result.assistantMessage,
             ]);
+
             if (questionNumber < questions.length - 1) {
               const newQuestion: Message = {
                 role: "question",
@@ -98,6 +107,7 @@ export const useChatLogic = () => {
             }
             return;
           }
+
           retries++;
         } catch (error: unknown) {
           console.error(

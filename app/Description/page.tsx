@@ -49,7 +49,7 @@ export default function Description() {
         </li>
         <div className="flex justify-center mt-12">
           <Button className="  mt-6 text-xl py-6 font-semibold h-0">
-            <Link href={"/Chat"}>Let's start!</Link>
+            <Link href={"/Chat"}>Let&#39;s start!</Link>
           </Button>
         </div>
       </div>

@@ -12,9 +12,8 @@ const useExponentialBackoff = async (
   response: unknown;
   assistantMessage: Message;
 }> => {
-  // 戻り値の型を修正
   if (retries >= maxRetries) {
-    throw new Error("Max retries exceeded"); // リトライ回数を超えた場合はエラーを投げる
+    throw new Error("Max retries exceeded");
   }
   const delay = Math.pow(2, retries) * 1000;
   await new Promise((resolve) => setTimeout(resolve, delay));
