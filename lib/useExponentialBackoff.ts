@@ -7,7 +7,11 @@ const useExponentialBackoff = async (
   processingMessage: string,
   genAI: GoogleGenerativeAI,
   geminiHistory: GeminiContent[]
-): Promise<{ success: boolean; response: any; assistantMessage: Message }> => {
+): Promise<{
+  success: boolean;
+  response: unknown;
+  assistantMessage: Message;
+}> => {
   // 戻り値の型を修正
   if (retries >= maxRetries) {
     throw new Error("Max retries exceeded"); // リトライ回数を超えた場合はエラーを投げる

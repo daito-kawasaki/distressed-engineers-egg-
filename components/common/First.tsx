@@ -24,11 +24,10 @@ export default function First() {
             そのためのアシストを目的としています。
           </p>
           <p className="mt-2 text-md md:text-lg">
-            このサイトでは、エンジニアとして何をどう進めればいいのか
-            どんな職種があるのか、この経験が何につながるのかを解決できます。
+            このサイトでは、エンジニアとして何をどう進めればいいのかどんな職種があるのか、この経験が何につながるのかを解決できます。
           </p>
           <Button className="bg-red-500 mt-6 text-xl py-6 font-semibold h-0">
-            <Link href={"/Description"}>Let's seize the future!</Link>
+            <Link href={"/Description"}>Let&#39;s seize the future!</Link>
           </Button>
         </div>
       </div>

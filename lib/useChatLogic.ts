@@ -52,19 +52,16 @@ export const useChatLogic = () => {
 
       while (retries <= maxRetries) {
         try {
-          geminiHistory = messages.reduce(
-            (acc: GeminiContent[], msg, index) => {
-              if (msg.role === "question") {
-                return acc;
-              }
-              acc.push({
-                role: msg.role === "user" ? "user" : "model",
-                parts: [{ text: msg.content }],
-              });
+          geminiHistory = messages.reduce((acc: GeminiContent[], msg) => {
+            if (msg.role === "question") {
               return acc;
-            },
-            []
-          );
+            }
+            acc.push({
+              role: msg.role === "user" ? "user" : "model",
+              parts: [{ text: msg.content }],
+            });
+            return acc;
+          }, []);
 
           const result = await useExponentialBackoff(
             retries,
@@ -119,7 +116,7 @@ export const useChatLogic = () => {
       }
       throw new Error("APIリクエストがタイムアウトしました");
     },
-    [messages, questionNumber, setMessages, setQuestionNumber]
+    [messages, questionNumber, setMessages, setQuestionNumber, messageNumber]
   );
 
   return {
