@@ -9,7 +9,7 @@ const useExponentialBackoff = async (
   geminiHistory: GeminiContent[]
 ): Promise<{
   success: boolean;
-  response?: any;
+  response?: unknown;
   assistantMessage?: Message;
 }> => {
   if (retries >= maxRetries) {

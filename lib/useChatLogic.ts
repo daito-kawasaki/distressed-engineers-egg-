@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Message } from "./types/chat";
-import useExponentialBackoff from "./useExponentialBackoff";
 
 export type GeminiPart = {
   text: string;
@@ -26,7 +25,7 @@ const handleGeminiApiCall = async (
   retries: number
 ): Promise<{
   success: boolean;
-  response?: any;
+  response?: unknown;
   assistantMessage?: Message;
 }> => {
   const maxRetries = 3;
