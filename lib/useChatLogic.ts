@@ -23,14 +23,12 @@ export const useChatLogic = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [questionNumber, setQuestionNumber] = useState(0);
   const [messageNumber, setMessageNumber] = useState(0);
-
   const handleSendMessage = useCallback(
     async (formData: { prompt: string }, genAI: GoogleGenerativeAI) => {
       const maxRetries = 3;
       let retries = 0;
       let geminiHistory: GeminiContent[] = [];
       let processingMessage = formData.prompt;
-
       if (messages.length === 0) {
         const initialQuestion: Message = {
           role: "question",
@@ -59,17 +57,54 @@ export const useChatLogic = () => {
 
       while (retries <= maxRetries) {
         try {
-          geminiHistory = messages.reduce((acc: GeminiContent[], msg) => {
-            if (msg.role === "question") {
+          geminiHistory = messages.reduce(
+            (acc: GeminiContent[], msg, index) => {
+              if (index === 0 && msg.role === "question") {
+                return acc;
+              }
+              acc.push({
+                role: msg.role === "user" ? "user" : "model",
+                parts: [{ text: msg.content }],
+              });
               return acc;
-            }
-            acc.push({
-              role: msg.role === "user" ? "user" : "model",
-              parts: [{ text: msg.content }],
-            });
-            return acc;
-          }, []);
+            },
+            []
+          );
 
+          const genAIModel = genAI.getGenerativeModel({
+            model: "gemini-1.5-flash",
+          });
+          const chat = genAIModel.startChat({ history: geminiHistory });
+          const result = await chat.sendMessage(processingMessage);
+          const responseData = result.response;
+          const assistantMessage: Message = {
+            role: "assistant",
+            content: responseData.text(),
+          };
+          const userMessage: Message = {
+            role: "user",
+            content: processingMessage,
+          };
+          setMessages((prevMessages) => [...prevMessages, userMessage]);
+          setMessages((prevMessages) => [...prevMessages, assistantMessage]);
+          if (questionNumber < questions.length - 1) {
+            const newQuestion: Message = {
+              role: "question",
+              content: questions[questionNumber + 1],
+            };
+            setMessages((prevMessages) => [...prevMessages, newQuestion]);
+            setQuestionNumber((prevNumber) => prevNumber + 1);
+          }
+          if (questionNumber >= 4) {
+            setQuestionNumber((prevNumber) => prevNumber + 1);
+          }
+          return;
+        } catch (error: unknown) {
+          console.error(
+            `APIリクエストエラー (${retries + 1} 回目の試行):`,
+            error
+          );
+          retries++;
           const result = await useExponentialBackoff(
             retries,
             maxRetries,
@@ -77,51 +112,11 @@ export const useChatLogic = () => {
             genAI,
             geminiHistory
           );
-
-          if (
-            result &&
-            result.success &&
-            result.response &&
-            result.assistantMessage
-          ) {
-            const userMessage: Message = {
-              role: "user",
-              content: processingMessage,
-            };
-            setMessages((prevMessages) => [...prevMessages, userMessage]);
-            setMessages((prevMessages) => [
-              ...prevMessages,
-              result.assistantMessage,
-            ]);
-
-            if (questionNumber < questions.length - 1) {
-              const newQuestion: Message = {
-                role: "question",
-                content: questions[questionNumber + 1],
-              };
-              setMessages((prevMessages) => [...prevMessages, newQuestion]);
-              setQuestionNumber((prevNumber) => prevNumber + 1);
-            }
-            if (questionNumber >= 4) {
-              setQuestionNumber((prevNumber) => prevNumber + 1);
-            }
-            return;
+          if (result && result.success) {
+            continue;
           }
 
-          retries++;
-        } catch (error: unknown) {
-          console.error(
-            `APIリクエストエラー (${retries + 1} 回目の試行):`,
-            error
-          );
-          retries++;
-          await useExponentialBackoff(
-            retries,
-            maxRetries,
-            processingMessage,
-            genAI,
-            geminiHistory
-          );
+          throw error;
         }
       }
       throw new Error("APIリクエストがタイムアウトしました");
