@@ -1,9 +1,5 @@
-import Chat from "@/components/chat/Chat";
+import First from "@/components/common/First";
 
 export default function Home() {
-  return (
-    <>
-      <Chat />
-    </>
-  );
+  return <First />;
 }

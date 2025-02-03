@@ -10,14 +10,21 @@ import InputPrompt from "@/components/chat/InputPrompt";
 import { useChatLogic } from "@/lib/useChatLogic";
 import { createGeminiClient } from "@/lib/geminiApi";
 import { Message } from "@/lib/types/chat";
+import FinishModal from "./FinishModal";
 
 export default function Chat() {
   const router = useRouter();
   const [reseted, setReseted] = useState(false);
   const [loading, setLoading] = useState(false);
   const genAIRef = useRef<GoogleGenerativeAI | null>(null);
-  const { messages, setMessages, handleSendMessage, questions } =
-    useChatLogic();
+  const isFirstRender = useRef(true);
+  const {
+    messages,
+    setMessages,
+    handleSendMessage,
+    questions,
+    questionNumber,
+  } = useChatLogic();
 
   useEffect(() => {
     if (!genAIRef.current) {
@@ -35,11 +42,15 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
-    const firstQuestion: Message = {
-      role: "question",
-      content: questions[0],
-    };
-    setMessages((prevMessages) => [...prevMessages, firstQuestion]);
+    if (isFirstRender.current) {
+      const firstQuestion: Message = {
+        role: "question",
+        content: questions[0],
+      };
+      setMessages((prevMessages) => [...prevMessages, firstQuestion]);
+      console.log("こんにちは");
+      isFirstRender.current = false;
+    }
   }, [questions, setMessages]);
 
   const handleSubmit = async (formData: { prompt: string }) => {
@@ -81,6 +92,7 @@ export default function Chat() {
           setReseted={setReseted}
         />
       </div>
+      <FinishModal questionNumber={questionNumber} />
     </div>
   );
 }

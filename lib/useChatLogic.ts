@@ -1,14 +1,8 @@
 import { useState, useCallback } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Message } from "./types/chat";
-
-export type GeminiPart = {
-  text: string;
-};
-export type GeminiContent = {
-  role: "user" | "model";
-  parts: GeminiPart[];
-};
+import useExponentialBackoff from "./useExponentialBackoff";
+import { GeminiContent } from "./types/chat";
 
 const questions = [
   "1. あなたが今まで行ってきたこと（言語やフレームワーク、開発の内容など）はなんですか？それを踏まえてロボットにそれらがどのような職種があるか訪ねて見てください",
@@ -25,52 +19,41 @@ export const useChatLogic = () => {
 
   const handleSendMessage = useCallback(
     async (formData: { prompt: string }, genAI: GoogleGenerativeAI) => {
-      const maxRetries = 3; // 最大リトライ回数
+      const maxRetries = 3;
       let retries = 0;
+      let geminiHistory: GeminiContent[] = [];
+      let processingMessage = formData.prompt;
+
+      if (messages.length === 0) {
+        const initialQuestion: Message = {
+          role: "question",
+          content: questions[0],
+        };
+        setMessages((prevMessages) => [...prevMessages, initialQuestion]);
+      }
+
+      if (messageNumber === 0) {
+        processingMessage +=
+          "これらの経験を活かせる職種はどのようなものがありますか？";
+      } else if (messageNumber === 1) {
+        processingMessage +=
+          "これらの優先順位を踏まえて、現状のスキルセットや開発経験などを鑑み、キャリアプランが豊富だったり、最終的なゴールにどのようなものがあるか教えて下さい";
+      } else if (messageNumber === 2) {
+        processingMessage +=
+          "それを踏まえて、キャリアプランや最終的なゴールを選定してください。";
+      } else if (messageNumber === 3) {
+        processingMessage +=
+          "上記の内容を元に、今までの回答（1番の開発経験、二番の職種の関心に対する優先順位）を踏まえて、どの職種やキャリアプランを目指すのがいいかを教えて下さい。それに付け加えて、10年後の目標を1から3年、3から6年、6から10年という単位で定めてください。";
+      } else if (messageNumber === 4) {
+        processingMessage +=
+          "先ほどの質問にあった細分化した目標を組織の形ごとのキャリアプランの進め方と、理想の働き方について抑えながら、最終的な目標を効率的に達成できる環境や組織の形が自分に見合っているか教えて下さい。";
+      }
+      setMessageNumber((prevMessageNumber) => prevMessageNumber + 1);
 
       while (retries <= maxRetries) {
-        if (retries !== 0) {
-        }
         try {
-          const genAIModel = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
-          });
-
-          let processingMessage = formData.prompt;
-          if (messageNumber === 0) {
-            processingMessage +=
-              "これらの経験を活かせる職種はどのようなものがありますか？";
-            console.log(processingMessage);
-            setMessageNumber((prevMessageNumber) => prevMessageNumber + 1);
-          }
-          if (messageNumber === 1) {
-            processingMessage +=
-              "これらの優先順位を踏まえて、現状のスキルセットや開発経験などを鑑み、キャリアプランが豊富だったり、最終的なゴールにどのようなものがあるか教えて下さい";
-            setMessageNumber((prevMessageNumber) => prevMessageNumber + 1);
-          }
-          if (messageNumber === 2) {
-            processingMessage +=
-              "それを踏まえて、キャリアプランや最終的なゴールを選定してください。";
-            setMessageNumber((prevMessageNumber) => prevMessageNumber + 1);
-          }
-          if (messageNumber === 3) {
-            processingMessage +=
-              "上記の内容を元に、今までの回答（1番の開発経験、二番の職種の関心に対する優先順位）を踏まえて、どの職種やキャリアプランを目指すのがいいかを教えて下さい。それに付け加えて、10年後の目標を1から3年、3から6年、6から10年という単位で定めてください。";
-            setMessageNumber((prevMessageNumber) => prevMessageNumber + 1);
-          } else {
-            processingMessage +=
-              "先ほどの質問にあった細分化した目標を組織の形ごとのキャリアプランの進め方と、理想の働き方について抑えながら、最終的な目標を効率的に達成できる環境や組織の形が自分に見合っているか教えて下さい。";
-            setMessageNumber((prevMessageNumber) => prevMessageNumber + 1);
-          }
-
-          const userMessage: Message = {
-            role: "user",
-            content: processingMessage,
-          };
-          setMessages((prevMessages) => [...prevMessages, userMessage]);
-
-          const geminiHistory: GeminiContent[] = messages.reduce(
-            (acc: GeminiContent[], msg) => {
+          geminiHistory = messages.reduce(
+            (acc: GeminiContent[], msg, index) => {
               if (msg.role === "question") {
                 return acc;
               }
@@ -83,42 +66,60 @@ export const useChatLogic = () => {
             []
           );
 
-          const chat = genAIModel.startChat({ history: geminiHistory });
-
-          const result = await chat.sendMessage(processingMessage);
-          const responseData = result.response;
-
-          const assistantMessage: Message = {
-            role: "assistant",
-            content: responseData.text(),
-          };
-
-          setMessages((prevMessages) => [...prevMessages, assistantMessage]);
-          if (questionNumber < questions.length - 1) {
-            const newQuestion: Message = {
-              role: "question",
-              content: questions[questionNumber + 1],
+          const result = await useExponentialBackoff(
+            retries,
+            maxRetries,
+            processingMessage,
+            genAI,
+            geminiHistory
+          );
+          if (
+            result &&
+            result.success &&
+            result.response &&
+            result.assistantMessage
+          ) {
+            const userMessage: Message = {
+              role: "user",
+              content: processingMessage,
             };
-            setMessages((prevMessages) => [...prevMessages, newQuestion]);
-            setQuestionNumber((prevNumber) => prevNumber + 1);
+            setMessages((prevMessages) => [...prevMessages, userMessage]);
+            setMessages((prevMessages) => [
+              ...prevMessages,
+              result.assistantMessage,
+            ]);
+            if (questionNumber < questions.length - 1) {
+              const newQuestion: Message = {
+                role: "question",
+                content: questions[questionNumber + 1],
+              };
+              setMessages((prevMessages) => [...prevMessages, newQuestion]);
+              setQuestionNumber((prevNumber) => prevNumber + 1);
+            }
+            if (questionNumber >= 4) {
+              setQuestionNumber((prevNumber) => prevNumber + 1);
+            }
+            return;
           }
-          return; // 成功したらループを抜ける
+          retries++;
         } catch (error: unknown) {
           console.error(
             `APIリクエストエラー (${retries + 1} 回目の試行):`,
             error
           );
           retries++;
-          if (retries > maxRetries) {
-            throw error;
-          }
-          const delay = Math.pow(2, retries) * 1000;
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          console.log(`Retrying after ${delay / 1000} seconds...`);
+          await useExponentialBackoff(
+            retries,
+            maxRetries,
+            processingMessage,
+            genAI,
+            geminiHistory
+          );
         }
       }
+      throw new Error("APIリクエストがタイムアウトしました");
     },
-    [messages, questionNumber, setMessages, setQuestionNumber, messageNumber]
+    [messages, questionNumber, setMessages, setQuestionNumber]
   );
 
   return {
@@ -126,5 +127,6 @@ export const useChatLogic = () => {
     setMessages,
     handleSendMessage,
     questions,
+    questionNumber,
   };
 };

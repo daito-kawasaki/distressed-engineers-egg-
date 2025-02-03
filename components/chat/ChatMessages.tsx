@@ -4,6 +4,9 @@ import { Skeleton } from "../ui/skeleton";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import type { Message } from "@/lib/types/chat";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeKatex from "rehype-katex";
 
 export default function ChatMessages({
   messages,
@@ -18,15 +21,15 @@ export default function ChatMessages({
         <div
           key={index}
           className={cn(
-            message.role === "user" &&
-              "flex justify-end max-w-full sm:max-w-[500px]",
-            message.role === "question" && "text-gray-500"
+            message.role === "user" && "flex justify-end max-w-full",
+            message.role === "question" &&
+              "flex justify-center   items-center text-gray-500"
           )}
         >
           <div
             className={cn(
               message.role === "user" &&
-                "flex items-center max-w-[70%] sm:max-w-[500px]",
+                "flex sm:justify-end items-center max-w-[70%] sm:max-w-[500px]",
               message.role === "question" &&
                 "flex items-center max-w-full sm:max-w-[500px]"
             )}
@@ -47,9 +50,13 @@ export default function ChatMessages({
                   : "bg-gray-100 rounded-t-lg rounded-br-lg"
               )}
             >
-              <div className="text-sm break-words break-keep">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeKatex]}
+                className="text-sm break-words break-keep"
+              >
                 {message.content}
-              </div>
+              </ReactMarkdown>
             </div>
           </div>
         </div>

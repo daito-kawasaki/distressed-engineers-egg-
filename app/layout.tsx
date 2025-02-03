@@ -32,9 +32,7 @@ export default function RootLayout({
 
           <Toaster />
 
-          <main className="container mx-auto max-w-screen-md flex-1 px-5">
-            {children}
-          </main>
+          {children}
 
           {/* フッター */}
           <footer className="py-5 fixed bottom-0 inset-x-0 bg-white">
