@@ -23,34 +23,41 @@ const handleGeminiApiCall = async (
   processingMessage: string,
   genAI: GoogleGenerativeAI,
   geminiHistory: GeminiContent[],
-  maxRetries: number,
   retries: number
 ): Promise<{
   success: boolean;
   response?: any;
   assistantMessage?: Message;
 }> => {
-  try {
-    const result = await useExponentialBackoff(
-      retries,
-      maxRetries,
-      processingMessage,
-      genAI,
-      geminiHistory
-    );
+  const maxRetries = 3;
+  if (retries >= maxRetries) {
+    throw new Error("Max retries exceeded");
+  }
+  const delay = Math.pow(2, retries) * 1000;
+  await new Promise((resolve) => setTimeout(resolve, delay));
+  console.log(`Retrying after ${delay / 1000} seconds...`);
 
-    return result;
+  try {
+    const genAIModel = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+    });
+    const chat = genAIModel.startChat({ history: geminiHistory });
+    const result = await chat.sendMessage(processingMessage);
+    const responseData = result.response;
+    const assistantMessage: Message = {
+      role: "assistant",
+      content: responseData.text(),
+    };
+    return { success: true, response: responseData, assistantMessage };
   } catch (error: unknown) {
     console.error(`APIリクエストエラー (${retries + 1} 回目の試行):`, error);
     throw error;
   }
 };
-
 export const useChatLogic = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [questionNumber, setQuestionNumber] = useState(0);
   const [messageNumber, setMessageNumber] = useState(0);
-
   const handleSendMessage = useCallback(
     async (formData: { prompt: string }, genAI: GoogleGenerativeAI) => {
       let geminiHistory: GeminiContent[] = [];
@@ -82,10 +89,9 @@ export const useChatLogic = () => {
       }
       setMessageNumber((prevMessageNumber) => prevMessageNumber + 1);
 
-      let maxRetries = 3;
       let retries = 0;
       let success = false;
-      while (retries <= maxRetries) {
+      while (retries <= 3) {
         try {
           geminiHistory = messages.reduce(
             (acc: GeminiContent[], msg, index) => {
@@ -105,7 +111,6 @@ export const useChatLogic = () => {
             processingMessage,
             genAI,
             geminiHistory,
-            maxRetries,
             retries
           );
 
@@ -138,11 +143,11 @@ export const useChatLogic = () => {
             success = true;
             break;
           }
+
           retries++;
         } catch (error: unknown) {
           console.error("error: ", error);
           retries++;
-          await new Promise((resolve) => setTimeout(resolve, 1000)); // 1秒待機
         }
       }
       if (!success) {

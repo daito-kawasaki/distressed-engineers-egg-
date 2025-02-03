@@ -9,8 +9,8 @@ const useExponentialBackoff = async (
   geminiHistory: GeminiContent[]
 ): Promise<{
   success: boolean;
-  response: unknown;
-  assistantMessage: Message;
+  response?: any;
+  assistantMessage?: Message;
 }> => {
   if (retries >= maxRetries) {
     throw new Error("Max retries exceeded");
@@ -25,15 +25,12 @@ const useExponentialBackoff = async (
     const chat = genAIModel.startChat({ history: geminiHistory });
     const result = await chat.sendMessage(processingMessage);
     const responseData = result.response;
+
     const assistantMessage: Message = {
       role: "assistant",
       content: responseData.text(),
     };
-    return {
-      success: true,
-      response: responseData,
-      assistantMessage: assistantMessage,
-    };
+    return { success: true, response: responseData, assistantMessage };
   } catch (error: unknown) {
     console.error(`APIリクエストエラー (${retries + 1} 回目の試行):`, error);
     throw error;
