@@ -53,7 +53,7 @@ export default function ChatMessages({
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeKatex]}
-                className="text-sm break-words break-keep"
+                className="text-sm break-words break-keep leading-[1.2]"
               >
                 {message.content}
               </ReactMarkdown>

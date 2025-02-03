@@ -48,7 +48,6 @@ export default function Chat() {
         content: questions[0],
       };
       setMessages((prevMessages) => [...prevMessages, firstQuestion]);
-      console.log("こんにちは");
       isFirstRender.current = false;
     }
   }, [questions, setMessages]);

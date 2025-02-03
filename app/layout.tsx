@@ -35,7 +35,7 @@ export default function RootLayout({
           {children}
 
           {/* フッター */}
-          <footer className="py-5 fixed bottom-0 inset-x-0 bg-white">
+          <footer className="py-4 fixed bottom-0 inset-x-0 bg-white">
             <div className="text-center text-sm">
               Copyright © All rights reserved | daitokawasaki
             </div>
