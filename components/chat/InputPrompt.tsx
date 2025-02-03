@@ -116,8 +116,15 @@ export default function InputPrompt({
           />
         </div>
         <div id="button_field" className=" flex flex-col items-end !my-0">
-          <Button type="submit" disabled={loading} className=" w-fit">
+          <Button
+            type="submit"
+            disabled={loading}
+            className=" w-fit hidden sm:block"
+          >
             ⌘ + Enter　送信
+          </Button>
+          <Button type="submit" disabled={loading} className=" w-fit sm:hidden">
+            送信
           </Button>
         </div>
       </form>
